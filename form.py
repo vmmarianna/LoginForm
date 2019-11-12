@@ -3,22 +3,26 @@ from PyQt5.QtWidgets import QMessageBox
 
 from mainui import Ui_MainWindow  # импорт нашего сгенерированного файла
 import sys
-import sqlite3
+import psycopg2
+import config
 from utils import *
 
 class mywindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(mywindow, self).__init__()
-        self.con = sqlite3.connect('database.db')
+        self.con = psycopg2.connect(dbname=config.db_name, user=config.user,
+                                password=config.password, host=config.host)
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.SignIn_btn.clicked.connect(self.signin)
         self.ui.SignUp_btn.clicked.connect(self.signup)
-        self.error_dialog = QtWidgets.QErrorMessage()
+        self.error_dialog = QtWidgets.QMessageBox()
+        self.error_dialog.setWindowTitle("Error")
+        self.error_dialog.setStandardButtons(QMessageBox.Ok)
         self.info_dialog = QtWidgets.QMessageBox()
         self.info_dialog.setWindowTitle('INFO')
-        self.info_dialog.setText('Login Successful')
-        self.info_dialog.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        self.info_dialog.setStandardButtons(QMessageBox.Ok)
 
     def signup(self):
         cur = self.con.cursor()
@@ -51,9 +55,11 @@ class mywindow(QtWidgets.QMainWindow):
         cur = self.con.cursor()
         cur.execute(f"""select * from secret where Login = "{login}" and Password = "{passwd}";""")
         if len(cur.fetchall()) > 0:
+            self.info_dialog.setText("Login Successful")
             self.info_dialog.exec_()
         else:
-            self.error_dialog.showMessage("Login Failed")
+            self.error_dialog.setText("Login Failed")
+            self.error_dialog.exec_()
 
 
 app = QtWidgets.QApplication([])
