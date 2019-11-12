@@ -1,4 +1,6 @@
 from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QMessageBox
+
 from mainui import Ui_MainWindow  # импорт нашего сгенерированного файла
 import sys
 import sqlite3
@@ -12,8 +14,11 @@ class mywindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.ui.SignIn_btn.clicked.connect(self.signin)
         self.ui.SignUp_btn.clicked.connect(self.signup)
-
-
+        self.error_dialog = QtWidgets.QErrorMessage()
+        self.info_dialog = QtWidgets.QMessageBox()
+        self.info_dialog.setWindowTitle('INFO')
+        self.info_dialog.setText('Login Successful')
+        self.info_dialog.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
 
     def signup(self):
         cur = self.con.cursor()
@@ -46,9 +51,9 @@ class mywindow(QtWidgets.QMainWindow):
         cur = self.con.cursor()
         cur.execute(f"""select * from secret where Login = "{login}" and Password = "{passwd}";""")
         if len(cur.fetchall()) > 0:
-            print('Login successful')
+            self.info_dialog.exec_()
         else:
-            print("Login Failed")
+            self.error_dialog.showMessage("Login Failed")
 
 
 app = QtWidgets.QApplication([])
